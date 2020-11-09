@@ -19,8 +19,9 @@
 
 /*** defines ***/
 
-#define CEDITOR_VERSION "0.0.1"
+#define CEDITOR_VERSION "0.1.0"
 #define CEDITOR_TAB_STOP 8
+#define CEDITOR_QUIT_TIMES 3
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -519,6 +520,8 @@ void editorMoveCursor(int key) {
 
 
 void editorProcessKeypress() {
+	static int quit_times = CEDITOR_QUIT_TIMES;
+
 	int c = editorReadKey();
 
 	switch (c) {
@@ -529,6 +532,11 @@ void editorProcessKeypress() {
 
 
 		case CTRL_KEY('q'):
+			if (E.dirty && quit_times > 0) {
+				editorSetStatusMessage("Warning. The file has unsaved changes. " "Press Ctrl-Q %d more times to quit.", quit_times);
+				quit_times--;
+				return;
+			}
 			write(STDOUT_FILENO, "\x1b[2J", 4);
 			write(STDOUT_FILENO, "\x1b[H", 3);
 			exit(0);
@@ -586,6 +594,8 @@ void editorProcessKeypress() {
 			editorInsertChar(c);
 			break;
 	}
+	
+	quit_times = CEDITOR_QUIT_TIMES;
 }
 
 
