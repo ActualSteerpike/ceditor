@@ -41,7 +41,8 @@ enum editorKey {
 
 enum editorHighlight {
 	HL_NORMAL = 0,
-	HL_NUMBER
+	HL_NUMBER,
+	HL_MATCH
 };
 
 
@@ -206,6 +207,14 @@ void editorUpdateSyntax(erow *row) {
 		if (isdigit(row->render[i])) {
 			row->hl[i] = HL_NUMBER;
 		}
+	}
+}
+
+int editorSyntaxToColour(int hl) {
+	switch (hl) {
+		case HL_NUMBER: return 31;
+		case HL_MATCH: return 34;
+		default: return 37;
 	}
 }
 
@@ -574,16 +583,29 @@ void editorDrawRows(struct abuf *ab) {
 		if (len < 0) len = 0;
 		if (len > E.screencols) len = E.screencols;
 		char *c = &E.row[filerow].render[E.coloff];
+		unsigned char *hl = &E.row[filerow].hl[E.coloff];
+		int current_colour = -1;
 		int j;
 		for (j = 0; j < len; j++) {
-			if (isdigit(c[j])) {
-				abAppend(ab, "\x1b[31m", 5);
-				abAppend(ab, &c[j], 1);
+			if (hl[j] == HL_NORMAL) {
+				if (current_colour != -1) {
 				abAppend(ab, "\x1b[39m", 5);
-	} else {
-		abAppend(ab, &c[j], 1);
+				current_colour = -1;
+				}
+				abAppend(ab, &c[j], 1);
+				
+		} else {
+			int colour = editorSyntaxToColour(hl[j]);
+			if (colour != current_colour) {
+			current_colour = colour;
+			char buf[16];
+			int clen = snprintf(buf, sizeof(buf), "\x1b[%dm", colour);
+			abAppend(ab, buf, clen);
+			}
+			abAppend(ab, &c[j], 1);
 		}
 	}
+	abAppend(ab, "\x1b[39m", 5);
 }
 	
 		abAppend(ab, "\x1b[K", 3);
