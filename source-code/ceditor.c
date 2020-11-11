@@ -45,8 +45,16 @@ enum editorHighlight {
 	HL_MATCH
 };
 
+#define HL_HIGHLIGHT_NUMBERS (1<<0)
+
 
 /*** data ***/
+
+struct editorSyntax {
+	char *filetype;
+	char **filematch;
+	int flags;
+};
 
 typedef struct erow {
 	int size;
@@ -69,10 +77,23 @@ struct editorConfig {
 	char *filename;
 	char statusmsg[80];
 	time_t statusmsg_time;
+	struct editorSyntax *syntax;
 	struct termios orig_termios;
 };
 
 struct editorConfig E;
+
+/*** filetypes ***/
+
+char *C_HL_extensions[] = { ".c", ".h", ".cpp", NULL};
+
+struct editorSyntax HLDB[] = {
+	{
+	"c",
+	C_HL_extensions,
+	HL_HIGHLIGHT_NUMBERS
+	},
+};
 
 /*** prototypes ***/
 
@@ -886,6 +907,7 @@ void initEditor() {
 	E.filename = NULL;
 	E.statusmsg[0] = '\0';
 	E.statusmsg_time = 0;
+	E.syntax = NULL;
 
 	if (getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
 	E.screenrows -= 2;
