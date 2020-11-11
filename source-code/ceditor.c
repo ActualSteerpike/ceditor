@@ -296,7 +296,6 @@ void editorUpdateSyntax(erow *row) {
 			}			
 		}
 
-
 	if (E.syntax->flags & HL_HIGHLIGHT_STRINGS) {
 		if (in_string) {
 			row->hl[i] = HL_STRING;
